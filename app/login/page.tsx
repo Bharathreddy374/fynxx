@@ -3,20 +3,58 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, we just log the data. We'll send it to an API later.
-    console.log({ email, password });
-    alert("Check the console to see your form data!");
+    setIsLoading(true);
+    toast.loading("Signing you in...");
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong.");
+      }
+      
+      toast.success("Welcome back!", {
+        description: "Redirecting you to your dashboard...",
+      });
+      
+      const { role, status } = data.user;
+
+      if (status !== 'approved') {
+        // We'll build a dedicated page for this later.
+        alert("Your account is pending approval from an administrator.");
+        router.push('/');
+      } else {
+        router.push(`/dashboard/${role}`);
+      }
+
+    } catch (error: any) {
+      toast.error("Login Failed", {
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -40,7 +78,9 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" type="submit">Sign In</Button>
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </Button>
             <p className="text-sm text-center">
               Dont have an account?{" "}
               <Link href="/register" className="underline font-bold">
