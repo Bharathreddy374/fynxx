@@ -1,9 +1,8 @@
 // models/User.ts
-import mongoose, { Schema, Document, models } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
-  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   passwordHash: string;
@@ -22,13 +21,19 @@ const UserSchema: Schema = new Schema({
 
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('passwordHash')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
-  next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    return next();
+  } catch (err: unknown) {
+    return next(err as Error);
+  }
 });
 
 UserSchema.methods.comparePassword = function (password: string): Promise<boolean> {
   return bcrypt.compare(password, this.passwordHash);
 };
 
-export default models.User || mongoose.model<IUser>('User', UserSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+
+export default User;

@@ -1,6 +1,6 @@
 // lib/db.ts
 import mongoose from "mongoose";
-
+import "@/models/User";
 const MONGODB_URI = process.env.MONGODB_URI!;
 
 if (!MONGODB_URI) {
@@ -17,18 +17,31 @@ if (!cached) {
 
 async function dbConnect() {
   if (cached.conn) {
-    console.log("Using cached connection");
+    console.log("✅ Using cached database connection.");
     return cached.conn;
   }
+
   if (!cached.promise) {
+    console.log("🟡 Creating new database connection...");
     const opts = {
       bufferCommands: false,
     };
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      console.log("✅ New database connection established.");
       return mongoose;
+    }).catch(err => {
+      console.error("❌ Database connection failed:", err);
+      throw err; // Re-throw error to be caught by API routes
     });
   }
-  cached.conn = await cached.promise;
+  
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null; // Reset promise on connection error
+    throw e;
+  }
+  
   return cached.conn;
 }
 
