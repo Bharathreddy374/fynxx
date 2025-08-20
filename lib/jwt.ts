@@ -14,13 +14,13 @@ interface TokenPayload {
 
 export function signAccessToken(payload: TokenPayload) {
   return jwt.sign(payload, ACCESS_SECRET, {
-    expiresIn: `${process.env.ACCESS_TOKEN_TTL_SECONDS}s`,
+    expiresIn: Number(process.env.ACCESS_TOKEN_TTL_SECONDS),
   });
 }
 
 export function signRefreshToken(payload: TokenPayload) {
   return jwt.sign(payload, REFRESH_SECRET, {
-    expiresIn: `${process.env.REFRESH_TOKEN_TTL_SECONDS}s`,
+    expiresIn: Number(process.env.REFRESH_TOKEN_TTL_SECONDS),
   });
 }
 

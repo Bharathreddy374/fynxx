@@ -48,10 +48,9 @@ export default function LoginPage() {
         router.push(`/dashboard/${role}`);
       }
 
-    } catch (error: any) {
-      toast.error("Login Failed", {
-        description: error.message,
-      });
+    } catch (error: unknown) {
+      const description = error instanceof Error ? error.message : "An unexpected error occurred.";
+      toast.error("Login Failed", { description });
     } finally {
       setIsLoading(false);
     }

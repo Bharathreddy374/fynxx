@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const payload = { 
-    sub: user._id.toString(), 
+    sub: String(user._id), 
     role: user.role, 
     status: user.status 
   };

@@ -42,10 +42,9 @@ export default function RegisterPage() {
       });
       router.push('/login');
 
-    } catch (error: any) {
-      toast.error("Registration Failed", {
-        description: error.message,
-      });
+    } catch (error: unknown) {
+      const description = error instanceof Error ? error.message : "An unexpected error occurred.";
+      toast.error("Registration Failed", { description });
     } finally {
       setIsLoading(false);
     }
