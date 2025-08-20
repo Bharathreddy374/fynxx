@@ -20,8 +20,9 @@ export default function BrandDashboard() {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const res = await fetch('/api/campaigns'); // We can reuse the same endpoint
-        if (!res.ok) throw new Error('Failed to fetch');
+        // We can reuse the same public endpoint to get all campaigns
+        const res = await fetch('/api/campaigns'); 
+        if (!res.ok) throw new Error('Failed to fetch campaigns');
         const data = await res.json();
         setCampaigns(data);
       } catch (error) {

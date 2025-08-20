@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { toast } from 'sonner';
 
 interface Applicant {
   _id: string;
@@ -20,13 +19,11 @@ interface Applicant {
 export default function ApplicantsPage({ params }: { params: { id: string } }) {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const campaignId = params.id;
 
   useEffect(() => {
     if (!campaignId) return;
     const fetchApplicants = async () => {
-      // ... fetchApplicants logic remains the same
       try {
         const res = await fetch(`/api/brand/campaigns/${campaignId}/applications`);
         if (!res.ok) throw new Error('Failed to fetch applicants');
@@ -41,37 +38,6 @@ export default function ApplicantsPage({ params }: { params: { id: string } }) {
 
     fetchApplicants();
   }, [campaignId]);
-
-  // --- ADD THE NEW HANDLE REVIEW FUNCTION ---
-  const handleReview = async (applicationId: string, decision: 'accepted' | 'rejected') => {
-    setReviewingId(applicationId);
-    toast.loading(`Updating application...`);
-
-    try {
-      const res = await fetch(`/api/applications/${applicationId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision }),
-      });
-
-      const updatedApplication = await res.json();
-      if (!res.ok) throw new Error(updatedApplication.error || 'Failed to update status');
-
-      toast.success(`Application has been ${decision}.`);
-
-      // Update the UI instantly
-      setApplicants(currentApplicants =>
-        currentApplicants.map(app =>
-          app._id === applicationId ? { ...app, state: updatedApplication.state } : app
-        )
-      );
-
-    } catch (error: unknown) {
-      toast.error("Update Failed", { description: error instanceof Error ? error.message:"Unknown error occured" });
-    } finally {
-      setReviewingId(null);
-    }
-  };
 
   if (isLoading) {
     return <div>Loading applicants...</div>;
@@ -96,27 +62,12 @@ export default function ApplicantsPage({ params }: { params: { id: string } }) {
                 <CardDescription>{app.influencerId.email}</CardDescription>
               </CardHeader>
               <CardContent className="flex justify-between items-center">
-                <span className={`text-sm font-semibold capitalize px-3 py-1 rounded-full ${
-                    app.state === 'accepted' ? 'bg-green-200 text-green-800' 
-                  : app.state === 'rejected' ? 'bg-red-200 text-red-800' 
-                  : 'bg-yellow-200 text-yellow-800'
-                }`}>
+                <span className="text-sm font-semibold capitalize px-3 py-1 bg-yellow-200 text-yellow-800 rounded-full">
                   {app.state}
                 </span>
                 <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleReview(app._id, 'rejected')}
-                      disabled={reviewingId === app._id || app.state !== 'applied'}
-                    >
-                      Reject
-                    </Button>
-                    <Button 
-                      onClick={() => handleReview(app._id, 'accepted')}
-                      disabled={reviewingId === app._id || app.state !== 'applied'}
-                    >
-                      Approve
-                    </Button>
+                    <Button variant="outline">Reject</Button>
+                    <Button>Approve</Button>
                 </div>
               </CardContent>
             </Card>

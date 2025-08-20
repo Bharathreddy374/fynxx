@@ -10,8 +10,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    await request.text(); // <-- ADD THIS LINE
-
+    await request.text(); // Recommended for Vercel edge runtime
     await dbConnect();
     const campaignId = params.id;
 

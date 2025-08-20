@@ -39,6 +39,9 @@ export default function DashboardLayout({
           <Link href="/dashboard/influencer/campaigns" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
             Campaigns
           </Link>
+          <Link href="/dashboard/influencer/my-campaigns" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+           My Campaigns
+          </Link>
           <Link href="/dashboard/influencer/profile" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
             Profile
           </Link>
@@ -56,7 +59,21 @@ export default function DashboardLayout({
         </>
       );
     }
-
+    if (user.role === 'admin') {
+      return (
+        <>
+          <Link href="/dashboard/admin" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+            Dashboard
+          </Link>
+          <Link href="/dashboard/admin/users" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+            Users
+          </Link>
+          <Link href="/dashboard/admin/campaigns" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+            Campaigns
+          </Link>
+        </>
+      );
+    }
     // Add admin links here later
     return null;
   };
