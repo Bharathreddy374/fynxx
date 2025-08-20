@@ -2,14 +2,35 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Campaign from '@/models/Campaign';
-import '@/models/User';  // Ensure User model is also loaded
-import { z } from 'zod';
+import Application from '@/models/Application'; // Import the Application model
+import '@/models/User';
+import { cookies } from 'next/headers';
+import { verify } from 'jsonwebtoken';
+
+interface JwtPayload {
+  sub: string;
+  role: string;
+}
 
 export async function GET() {
   try {
     await dbConnect();
+    const cookieStore =await cookies();
+    const token = cookieStore.get('access_token');
 
-    // For the POC, we'll add some dummy data if no campaigns exist
+    let influencerId: string | null = null;
+    if (token) {
+      try {
+        const decoded = verify(token.value, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
+        if (decoded.role === 'influencer') {
+          influencerId = decoded.sub;
+        }
+      } catch (e) {
+        console.error("Invalid token on campaign fetch:", e);
+      }
+    }
+
+    // Dummy data seeding remains the same...
     const count = await Campaign.countDocuments();
     if (count === 0) {
       await Campaign.create([
@@ -19,41 +40,24 @@ export async function GET() {
       ]);
     }
 
-    const campaigns = await Campaign.find({ status: 'active' });
+    const campaigns = await Campaign.find({ status: 'active' }).lean();
+
+    // If the user is an influencer, check which campaigns they've applied to
+    if (influencerId) {
+      const userApplications = await Application.find({ influencerId }).select('campaignId');
+      const appliedCampaignIds = new Set(userApplications.map(app => app.campaignId.toString()));
+
+      const campaignsWithStatus = campaigns.map(campaign => ({
+        ...campaign,
+        hasApplied: appliedCampaignIds.has(campaign._id.toString()),
+      }));
+      return NextResponse.json(campaignsWithStatus);
+    }
+
     return NextResponse.json(campaigns);
 
   } catch (error) {
     console.error("Failed to fetch campaigns:", error);
     return NextResponse.json({ error: "Failed to fetch campaigns" }, { status: 500 });
   }
-}
-
-const campaignSchema = z.object({
-    title: z.string().min(5, "Title must be at least 5 characters long"),
-    brief: z.string().min(10, "Brief must be at least 10 characters long"),
-    rewardAmount: z.number().positive("Reward must be a positive number"),
-    platform: z.enum(['instagram', 'youtube', 'any']),
-});
-
-export async function POST(request: Request) {
-    try {
-        await dbConnect();
-        const body = await request.json();
-        const validation = campaignSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json({ error: "Invalid input", details: validation.error.flatten() }, { status: 400 });
-        }
-
-        // In a real app, you would get the brand's user ID from the JWT here
-        // For the POC, we'll create the campaign without linking it to a specific brand user.
-
-        const newCampaign = await Campaign.create(validation.data);
-
-        return NextResponse.json(newCampaign, { status: 201 });
-
-    } catch (error) {
-        console.error("Failed to create campaign:", error);
-        return NextResponse.json({ error: "Failed to create campaign" }, { status: 500 });
-    }
 }
