@@ -22,8 +22,12 @@ export default function DashboardLayout({
       await fetch('/api/auth/logout', { method: 'POST' });
       toast.success("You have been logged out.");
       router.push('/login');
-    } catch (error) {
-      toast.error("Logout failed.");
+    } catch (error : unknown) {
+      if (error instanceof Error) {
+        toast.error("Logout failed.", { description: error.message });
+      } else {
+        toast.error("Logout failed.", { description: "Unknown error occurred" });
+      }
     }
   };
 
