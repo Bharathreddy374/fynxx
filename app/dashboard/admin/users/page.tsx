@@ -59,7 +59,11 @@ export default function AdminUsersPage() {
         );
 
     } catch (error: unknown) {
-        toast.error("Update Failed", { description: (error as Error).message });
+        if (error instanceof Error) {
+            toast.error("Update Failed", { description: error.message });
+        } else {
+            toast.error("Update Failed", { description: "Unknown error occurred" });
+        }
     } finally {
         setUpdatingId(null);
     }

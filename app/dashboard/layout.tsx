@@ -36,6 +36,9 @@ export default function DashboardLayout({
           <Link href="/dashboard/influencer" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
             Dashboard
           </Link>
+          <Link href="/dashboard/influencer/wallet" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+            Wallet
+          </Link>
           <Link href="/dashboard/influencer/campaigns" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
             Campaigns
           </Link>
@@ -71,16 +74,18 @@ export default function DashboardLayout({
           <Link href="/dashboard/admin/campaigns" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
             Campaigns
           </Link>
+<Link href="/dashboard/admin/proofs" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-lavender">
+  Proof Reviews
+</Link>
         </>
       );
     }
-    // Add admin links here later
     return null;
   };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <aside className="w-64 bg-white shadow-md hidden md:block flex flex-col">
+      <aside className="w-64 bg-white shadow-md md:block flex flex-col">
         <div className="p-6">
           <h2 className="text-2xl font-heading text-blueberry">Fynxx</h2>
         </div>

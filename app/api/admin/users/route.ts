@@ -17,7 +17,7 @@ const approveUserSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
+  const cookieStore =await cookies();
   const token = cookieStore.get('access_token');
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
