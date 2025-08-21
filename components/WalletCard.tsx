@@ -3,10 +3,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function WalletCard() {
-  // We'll fetch the real balance later
-  const balance = 5000; 
+interface WalletCardProps {
+  balance: number;
+}
 
+export default function WalletCard({ balance }: WalletCardProps) {
   return (
     <Card className="w-full max-w-md animate-float glass-card bg-gradient-to-tr from-blueberry to-purple-400 text-white shadow-lg">
       <CardHeader>

@@ -8,6 +8,11 @@ export interface IUser extends Document {
   passwordHash: string;
   role: 'influencer' | 'brand' | 'admin';
   status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  // Add the wallet property to the interface
+  wallet: {
+    balance: number;
+    currency: string;
+  };
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -17,7 +22,16 @@ const UserSchema: Schema = new Schema({
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['influencer', 'brand', 'admin'], required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected', 'suspended'], default: 'pending' },
+
+  // --- ADD THIS WALLET SCHEMA DEFINITION ---
+  wallet: {
+    balance: { type: Number, default: 0 },
+    currency: { type: String, default: 'INR' },
+  },
+
 }, { timestamps: true });
+
+// ... the rest of your file (pre-save hook, comparePassword method) remains the same
 
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('passwordHash')) return next();
