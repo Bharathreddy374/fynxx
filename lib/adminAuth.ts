@@ -1,26 +1,27 @@
 // lib/adminAuth.ts
-import { cookies } from "next/headers";
-import { verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import type { JwtPayload } from "jsonwebtoken";
 
-interface JwtPayload { sub: string; role: string }
+type AdminJwtPayload = JwtPayload & { role?: string };
 
-export async function requireAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token");
-  if (!token) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-
+export async function requireAdmin(request?: Request) {
   try {
-    const decoded = verify(token.value, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
-    if (decoded.role !== "admin") {
+    const authHeader = request?.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as AdminJwtPayload;
+
+    if (!decoded || decoded.role !== "admin") {
       return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
     }
-    return { decoded };
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return { error: NextResponse.json({ error: "Invalid token" }, { status: 401 }) };
-    } else {
-      return { error: NextResponse.json({ error: "Unknown error occurred" }, { status: 401 }) };
-    }
+
+    return { user: decoded };
+  } catch (err) {
+    console.error("Auth error:", err);
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 }

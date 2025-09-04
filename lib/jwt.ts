@@ -1,7 +1,7 @@
 // lib/jwt.ts
 import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
-import { serialize } from 'cookie';
+import { serialize, SerializeOptions } from 'cookie';
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET!;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
@@ -30,24 +30,28 @@ export function setAuthCookies(
   refreshToken: string
 ) {
   const isProduction = process.env.NODE_ENV === 'production';
-  const domain = process.env.COOKIE_DOMAIN!;
 
-  const accessCookie = serialize('access_token', accessToken, {
+  // Base cookie options
+  const baseCookieOptions: SerializeOptions = {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
     path: '/',
+  };
+
+  // Conditionally add the domain ONLY in production
+  if (isProduction && process.env.COOKIE_DOMAIN) {
+    baseCookieOptions.domain = process.env.COOKIE_DOMAIN;
+  }
+
+  const accessCookie = serialize('access_token', accessToken, {
+    ...baseCookieOptions,
     maxAge: parseInt(process.env.ACCESS_TOKEN_TTL_SECONDS!),
-    domain: domain,
   });
 
   const refreshCookie = serialize('refresh_token', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
-    path: '/',
+    ...baseCookieOptions,
     maxAge: parseInt(process.env.REFRESH_TOKEN_TTL_SECONDS!),
-    domain: domain,
   });
 
   res.headers.append('Set-Cookie', accessCookie);

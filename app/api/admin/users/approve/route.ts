@@ -3,13 +3,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
-import { verify } from 'jsonwebtoken';
-
-interface JwtPayload {
-  sub: string;
-  role: string;
-}
+import { requireAdmin } from '@/lib/adminAuth'; // Import the helper
 
 const approveUserSchema = z.object({
   userId: z.string(),
@@ -17,16 +11,11 @@ const approveUserSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const cookieStore =await cookies();
-  const token = cookieStore.get('access_token');
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Use the requireAdmin helper for consistent auth checks
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   try {
-    const decoded = verify(token.value, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
-    if (decoded.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     await dbConnect();
     const body = await request.json();
     const validation = approveUserSchema.safeParse(body);
@@ -49,8 +38,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(updatedUser);
 
-  } catch (error) {
-    console.error("User approval error:", error);
+  } catch (err) {
+    console.error("User approval error:", err);
     return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }
