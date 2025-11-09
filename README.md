@@ -4,10 +4,6 @@
 
 ---
 
-## 🔗 Live Preview  
-*(Add link if deployed; otherwise remove this section or mark “Local Demo”)*
-  
----
 
 ## 📖 Project Overview  
 Fynxx is designed to empower micro-influencers (e.g., Instagram, YouTube) by participating in brand campaigns, earning rewards and managing their profiles, while enabling brands to launch campaigns and admins to oversee the ecosystem.  
